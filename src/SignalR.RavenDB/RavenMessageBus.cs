@@ -1,28 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Messaging;
 using Microsoft.AspNet.SignalR.Tracing;
+using Raven.Client;
 
 namespace SignalR.RavenDB
 {
     public class RavenMessageBus : ScaleoutMessageBus
     {
         private readonly TraceSource _trace;
+        private readonly Func<IDocumentStore> _documentStoreFactory;
 
         private int _state;
+        private IDocumentStore _documentStore;
 
-        public RavenMessageBus(IDependencyResolver resolver, ScaleoutConfiguration configuration) 
+        public RavenMessageBus(IDependencyResolver resolver, RavenScaleoutConfiguration configuration) 
             : base(resolver, configuration)
         {
             if (configuration == null)
                 throw new ArgumentNullException("configuration");
 
+            _documentStoreFactory = configuration.DocumentStoreFactory;
+
+            // initialize trace source
             var traceManager = resolver.Resolve<ITraceManager>();
             _trace = traceManager["SignalR." + typeof(RavenMessageBus).Name];
         }
@@ -46,6 +49,36 @@ namespace SignalR.RavenDB
             base.Dispose(disposing);
         }
 
+        private Task Connect()
+        {
+            if (_documentStore != null)
+            {
+                _documentStore.Dispose();
+                _documentStore = null;
+            }
+
+            try
+            {
+                _trace.TraceInformation("Initializing connection ...");
+
+                var documentStore = _documentStoreFactory();
+                documentStore.Initialize();
+
+                _trace.TraceInformation("Connection initialized.");
+
+                //TODO: Subscribe
+
+
+                _documentStore = documentStore;
+                return TaskAsyncHelper.Empty;
+            }
+            catch (Exception ex)
+            {
+                _trace.TraceError("Error connecting to RavenDB - " + ex.GetBaseException());
+                return TaskAsyncHelper.FromError(ex);
+            }
+        }
+
         private void Shutdown()
         {
             _trace.TraceInformation("Shutdown()");
@@ -56,11 +89,12 @@ namespace SignalR.RavenDB
                 _channel.Unsubscribe(_key);
                 _channel.Close(abort: true);
             }
-
-            if (_connection != null)
+            */
+            if (_documentStore != null)
             {
-                _connection.Close(abort: true);
-            }*/
+                _documentStore.Dispose();
+                _documentStore = null;
+            }
 
             Interlocked.Exchange(ref _state, State.Disposed);
         }
@@ -71,6 +105,6 @@ namespace SignalR.RavenDB
             public const int Connected = 1;
             public const int Disposing = 2;
             public const int Disposed = 3;
-        }
+        }        
     }
 }
