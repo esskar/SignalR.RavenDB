@@ -72,6 +72,9 @@
     <Compile Include="TaskAsyncHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\README.md">
+      <Link>README.md</Link>
+    </None>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
