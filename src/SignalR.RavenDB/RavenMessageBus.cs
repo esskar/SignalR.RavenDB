@@ -38,9 +38,16 @@ namespace SignalR.RavenDB
             _observer = new RavenMessageObserver(this);
 
             this.ReconnectDelay = TimeSpan.FromSeconds(2);
+
+            this.ConnectWithRetry();
         }
 
         public TimeSpan ReconnectDelay { get; set; }
+
+        protected override Task Send(IList<Message> messages)
+        {
+            return this.Send(0, messages);
+        }
 
         protected override void Dispose(bool disposing)
         {
