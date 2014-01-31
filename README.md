@@ -4,7 +4,9 @@ RavenDB messaging backplane for scaling out of ASP.NET SignalR applications in a
 
 ## Get it on NuGet!
 
-``PM> Install-Package SignalR.RavenDB``
+```
+PM> Install-Package SignalR.RavenDB
+```
 
 ## Usage
 
