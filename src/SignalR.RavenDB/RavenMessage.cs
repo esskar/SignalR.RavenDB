@@ -9,7 +9,7 @@ namespace SignalR.RavenDB
 
         public byte[] Data { get; set; }
 
-        internal RavenMessage FromMessages(IList<Message> messages)
+        internal static RavenMessage FromMessages(IList<Message> messages)
         {
             var scaleoutMessage = new ScaleoutMessage(messages);
             return new RavenMessage
