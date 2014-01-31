@@ -4,10 +4,10 @@ RavenDB messaging backplane for scaling out of ASP.NET SignalR applications in a
 
 ## Usage
 
-1. [Download RavenDB][raven-download] and [run the Server][raven-tutorial]
-2. Add [Microsoft.AspNet.SignalR][signalr-nuget] NuGet packages to your application
-3. Create a SignalR application
-4. Add the following code to Startup.cs to configure the backplane:
+* [Download RavenDB][raven-download] and [run the Server][raven-tutorial]
+* Add [Microsoft.AspNet.SignalR][signalr-nuget] NuGet packages to your application
+* Create a SignalR application
+* Add the following code to Startup.cs to configure the backplane:
 ```csharp
 using Microsoft.AspNet.SignalR;
 using SignalR.RavenDB;
@@ -22,7 +22,7 @@ public class Startup
 	}
 }
 ```
-5. Add the following code to Web.config
+* Add the following code to Web.config
 ```xml
 <configuration>
   <connectionStrings>
