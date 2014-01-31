@@ -132,18 +132,7 @@ namespace SignalR.RavenDB
 
         private Task Connect()
         {
-            if (_databaseChanges != null)
-            {
-                _databaseChanges.ConnectionStatusChanged -= this.OnDatabasseConnectionStatusChanged;
-                _databaseChanges = null;
-            }
-
-            if (_documentStore != null)
-            {
-                _documentStore.Dispose();
-                _documentStore = null;
-            }
-
+            this.Release();
             try
             {
                 _trace.TraceInformation("Initializing connection ...");
@@ -219,24 +208,34 @@ namespace SignalR.RavenDB
         {
             _trace.TraceInformation("Shutdown ...");
 
-            /*
-            if (_channel != null)
-            {
-                _channel.Unsubscribe(_key);
-                _channel.Close(abort: true);
-            }
-            */
-            if (_documentStore != null)
-            {
-                _documentStore.Dispose();
-                _documentStore = null;
-            }
+            this.Release();
 
             _observer.Dispose();
 
             Interlocked.Exchange(ref _state, State.Disposed);
 
             _trace.TraceInformation("Goodbye.");
+        }
+
+        private void Release()
+        {
+            if (_subscription != null)
+            {
+                _subscription.Dispose();
+                _subscription = null;
+            }
+
+            if (_databaseChanges != null)
+            {
+                _databaseChanges.ConnectionStatusChanged -= this.OnDatabasseConnectionStatusChanged;
+                _databaseChanges = null;
+            }
+
+            if (_documentStore != null)
+            {
+                _documentStore.Dispose();
+                _documentStore = null;
+            }
         }
 
         internal void TraceInformation(string format, params object[] args)
