@@ -13,7 +13,7 @@ PM> Install-Package SignalR.RavenDB
 ## Usage
 
 * [Download RavenDB][raven-download] and [run the Server][raven-tutorial]
-* Add [Microsoft.AspNet.SignalR][signalr-nuget] NuGet packages to your application
+* Add [Microsoft.AspNet.SignalR][signalr-nuget] NuGet package to your application
 * Create a SignalR application
 * Add the following code to Startup.cs to configure the backplane:
 ```csharp
@@ -30,7 +30,7 @@ public class Startup
 	}
 }
 ```
-* Add the following code to Web.config
+* Add the following lines to Web.config
 ```xml
 <configuration>
   <connectionStrings>
