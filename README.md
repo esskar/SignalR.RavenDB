@@ -39,7 +39,46 @@ public class Startup
 </configuration>
 ```
 
+### Setting up the Database
+
+RavenDB is easy to use. It will also create the database for you if it does not exist when you first try to connect to it.
+This will probably fine during development cases. But you may want to tweak it a bit before going live.
+
+#### Compression
+
+RavenDB supports data compression. To be able to use that feature you have to enable to [compression bundle][raven-compression] during the database creation process.
+This will reduce package size and will probably increase your throughtput.
+
+#### Expiration
+
+The [expiration bundle][raven-expiration] serves a very simple purpose, it deletes documents whose time have passed.
+You may use this bundle to autmatically delete old messages from the bus.
+
+You also have to tell SignalR.RavenDB to use expiration by setting the `Expiration` property during configuration:
+```csharp
+using Microsoft.AspNet.SignalR;
+using SignalR.RavenDB;
+
+public class Startup
+{
+	public void Configuration(IAppBuilder app)
+	{
+		// Any connection or hub wire up and configuration should go here
+		GlobalHost.DependencyResolver.UseRaven(new RavenScaleoutConfiguration("raven_backplane")
+		{
+		    Expiration = TimeSpan.FromMinutes(10)
+		});
+		app.MapSignalR();
+	}
+}
+```
+
+*WARNING:* When master-master replication is set between RavenDB servers then the Expiration bundle should be turned on ONLY on one server, 
+otherwise conflicts will occur.
+
 [raven-download]: http://ravendb.net/download
 [raven-tutorial]: http://ravendb.net/docs/2.5/intro/ravendb-in-a-nutshell
+[raven-compression]: http://ravendb.net/docs/2.0/server/extending/bundles/compression
+[raven-expiration]: http://ravendb.net/docs/2.0/server/extending/bundles/expiration
 [signalr-nuget]: http://nuget.org/packages/Microsoft.AspNet.SignalR
 [me-nuget]: http://www.nuget.org/packages/SignalR.RavenDB
