@@ -17,7 +17,14 @@ namespace SignalR.RavenDB
             if (documentStoreFactory == null)
                 throw new ArgumentNullException("documentStoreFactory");
             _documentStoreFactory = documentStoreFactory;
+
+            this.ReconnectDelay = TimeSpan.FromSeconds(2);
+            this.Expiration = TimeSpan.Zero;
         }
+
+        public TimeSpan ReconnectDelay { get; set; }
+
+        public TimeSpan Expiration { get; set; }
 
         internal Func<IDocumentStore> DocumentStoreFactory
         {

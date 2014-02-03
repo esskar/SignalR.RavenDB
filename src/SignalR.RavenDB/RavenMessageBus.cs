@@ -8,16 +8,21 @@ using Microsoft.AspNet.SignalR.Messaging;
 using Microsoft.AspNet.SignalR.Tracing;
 using Raven.Client;
 using Raven.Client.Changes;
+using Raven.Json.Linq;
 
 namespace SignalR.RavenDB
 {
     public class RavenMessageBus : ScaleoutMessageBus
     {
+        private const string RavenExpirationDate = "Raven-Expiration-Date";
+
         private readonly TraceSource _trace;
         private readonly Func<IDocumentStore> _documentStoreFactory;
         private readonly RavenMessageObserver _observer;
         private readonly object _callbackLock = new object();
-
+        private readonly TimeSpan _reconnectDelay;
+        private readonly TimeSpan _expiration;
+        
         private int _state;
         private IDocumentStore _documentStore;
         private IDatabaseChanges _databaseChanges;
@@ -30,6 +35,8 @@ namespace SignalR.RavenDB
                 throw new ArgumentNullException("configuration");
 
             _documentStoreFactory = configuration.DocumentStoreFactory;
+            _reconnectDelay = configuration.ReconnectDelay;
+            _expiration = configuration.Expiration;
 
             // initialize trace source
             var traceManager = resolver.Resolve<ITraceManager>();
@@ -37,12 +44,8 @@ namespace SignalR.RavenDB
 
             _observer = new RavenMessageObserver(this);
 
-            this.ReconnectDelay = TimeSpan.FromSeconds(2);
-
             this.ConnectWithRetry();
         }
-
-        public TimeSpan ReconnectDelay { get; set; }
 
         protected override Task Send(IList<Message> messages)
         {
@@ -80,9 +83,15 @@ namespace SignalR.RavenDB
         {
             try
             {
+                var ravenMessage = RavenMessage.FromMessages(messages);
                 using (var session = _documentStore.OpenAsyncSession())
-                {
-                    await session.StoreAsync(RavenMessage.FromMessages(messages));
+                {                    
+                    await session.StoreAsync(ravenMessage);
+                    if (_expiration > TimeSpan.Zero)
+                    {
+                        var expiry = DateTime.UtcNow.Add(_expiration);
+                        session.Advanced.GetMetadataFor(ravenMessage)[RavenExpirationDate] = new RavenJValue(expiry);
+                    }
                     await session.SaveChangesAsync();
                 }
                 tcs.SetResult(null);
@@ -126,7 +135,7 @@ namespace SignalR.RavenDB
                 if (oldState == State.Disposing || oldState == State.Disposed)                    
                     return;
 
-                Task.Delay(this.ReconnectDelay).ContinueWith(_ => this.ConnectWithRetry(), TaskContinuationOptions.OnlyOnRanToCompletion);
+                Task.Delay(_reconnectDelay).ContinueWith(_ => this.ConnectWithRetry(), TaskContinuationOptions.OnlyOnRanToCompletion);
             }, TaskContinuationOptions.NotOnRanToCompletion);
         }
 
