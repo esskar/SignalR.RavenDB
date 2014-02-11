@@ -12,11 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{ADE695
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{FAD9F7A2-A32A-455E-BE10-42AD4AA23CC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR.RavenDB.SampleServer", "SignalR.RavenDB.SampleServer\SignalR.RavenDB.SampleServer.csproj", "{738781E1-4943-46F0-B9C3-09B1FBA05D5C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR.RavenDB.SampleServer", "src\SignalR.RavenDB.SampleServer\SignalR.RavenDB.SampleServer.csproj", "{738781E1-4943-46F0-B9C3-09B1FBA05D5C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR.RavenDB.SampleClient", "SignalR.RavenDB.SampleClient\SignalR.RavenDB.SampleClient.csproj", "{7681F894-9F3A-4ED2-A6C4-A8A964782488}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR.RavenDB.SampleClient", "src\SignalR.RavenDB.SampleClient\SignalR.RavenDB.SampleClient.csproj", "{7681F894-9F3A-4ED2-A6C4-A8A964782488}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR.RavenDB.SampleCommon", "SignalR.RavenDB.SampleCommon\SignalR.RavenDB.SampleCommon.csproj", "{63B4CB69-1574-43E2-9728-8A452FEB8673}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR.RavenDB.SampleCommon", "src\SignalR.RavenDB.SampleCommon\SignalR.RavenDB.SampleCommon.csproj", "{63B4CB69-1574-43E2-9728-8A452FEB8673}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

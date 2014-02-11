@@ -19,7 +19,7 @@ namespace SignalR.RavenDB.SampleClient
                     clients[count] = new Client(string.Format("Client({0})", count), Consts.Port + i);
                     var task = clients[count].Start();
 
-                    if (count == 3) // only last client sends
+                    if (j == 0) // only first client connected to a new port will send.
                     {
                         task.ContinueWith(
                             (_, client) => OnClientConnected((Client)client),
