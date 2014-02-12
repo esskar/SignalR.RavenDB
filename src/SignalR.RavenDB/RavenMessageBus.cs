@@ -22,7 +22,7 @@ namespace SignalR.RavenDB
         private readonly object _callbackLock = new object();
         private readonly TimeSpan _reconnectDelay;
         private readonly TimeSpan _expiration;
-        
+
         private int _state;
         private IDocumentStore _documentStore;
         private IDatabaseChanges _databaseChanges;
@@ -85,14 +85,22 @@ namespace SignalR.RavenDB
             {
                 var ravenMessage = RavenMessage.FromMessages(messages);
                 using (var session = _documentStore.OpenAsyncSession())
-                {                    
-                    await session.StoreAsync(ravenMessage);
-                    if (_expiration > TimeSpan.Zero)
+                {
+                    try
                     {
-                        var expiry = DateTime.UtcNow.Add(_expiration);
-                        session.Advanced.GetMetadataFor(ravenMessage)[RavenExpirationDate] = new RavenJValue(expiry);
+
+                        await session.StoreAsync(ravenMessage);
+                        if (_expiration > TimeSpan.Zero)
+                        {
+                            var expiry = DateTime.UtcNow.Add(_expiration);
+                            session.Advanced.GetMetadataFor(ravenMessage)[RavenExpirationDate] = new RavenJValue(expiry);
+                        }
+                        await session.SaveChangesAsync();
                     }
-                    await session.SaveChangesAsync();
+                    catch (Exception e)
+                    {
+                        _trace.TraceError("Failed to store '{0}'", e.GetBaseException());
+                    }
                 }
                 tcs.SetResult(null);
             }
@@ -121,18 +129,18 @@ namespace SignalR.RavenDB
                 this.OnError(0, ex);
             }
         }
-       
+
         private void ConnectWithRetry()
         {
             var connectTask = this.Connect();
             connectTask.ContinueWith(t =>
             {
-                if (!t.IsFaulted) 
+                if (!t.IsFaulted)
                     return;
 
                 _trace.TraceError("Error connecting to RavenDB - {0}", t.Exception);
                 var oldState = Interlocked.Exchange(ref _state, _state);
-                if (oldState == State.Disposing || oldState == State.Disposed)                    
+                if (oldState == State.Disposing || oldState == State.Disposed)
                     return;
 
                 Task.Delay(_reconnectDelay).ContinueWith(_ => this.ConnectWithRetry(), TaskContinuationOptions.OnlyOnRanToCompletion);
@@ -172,7 +180,7 @@ namespace SignalR.RavenDB
             if (isConnected)
             {
                 var oldState = Interlocked.Exchange(ref _state, State.Connected);
-                if (oldState == State.Connected) 
+                if (oldState == State.Connected)
                     return;
 
                 _trace.TraceInformation("Connected to RavenDB, subscribe to events.");
@@ -181,7 +189,7 @@ namespace SignalR.RavenDB
             else
             {
                 var oldState = Interlocked.Exchange(ref _state, State.Closed);
-                if (oldState == State.Closed) 
+                if (oldState == State.Closed)
                     return;
 
                 _trace.TraceInformation("Disonnected from RavenDB, unsubscribe to events.");
@@ -189,7 +197,7 @@ namespace SignalR.RavenDB
 
                 if (oldState == State.Disposing || oldState == State.Disposed)
                     return;
-                
+
                 this.ConnectWithRetry();
             }
         }
@@ -262,7 +270,7 @@ namespace SignalR.RavenDB
             public const int Closed = 0;
             public const int Connected = 1;
             public const int Disposing = 2;
-            public const int Disposed = 3;            
+            public const int Disposed = 3;
         }
     }
 }

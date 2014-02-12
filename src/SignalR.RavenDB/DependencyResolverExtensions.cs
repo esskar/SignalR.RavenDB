@@ -26,8 +26,7 @@ namespace SignalR.RavenDB
         /// <returns></returns>
         public static IDependencyResolver UseRaven(this IDependencyResolver resolver, RavenScaleoutConfiguration configuration)
         {
-            var bus = new Lazy<RavenMessageBus>(() => new RavenMessageBus(resolver, configuration));
-            resolver.Register(typeof(IMessageBus), () => bus.Value);
+            resolver.Register(typeof(IMessageBus), () => new RavenMessageBus(resolver, configuration));
 
             return resolver;
         }
