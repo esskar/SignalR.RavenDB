@@ -7,13 +7,16 @@ namespace SignalR.RavenDB
     {
         public string Id { get; set; }
 
+        public int StreamIndex { get; set; }
+
         public byte[] Data { get; set; }
 
-        internal static RavenMessage FromMessages(IList<Message> messages)
+        internal static RavenMessage FromMessages(int streamIndex, IList<Message> messages)
         {
             var scaleoutMessage = new ScaleoutMessage(messages);
             return new RavenMessage
             {
+                StreamIndex = streamIndex,
                 Data = scaleoutMessage.ToBytes()
             };
         }
@@ -22,5 +25,5 @@ namespace SignalR.RavenDB
         {
             return ScaleoutMessage.FromBytes(this.Data);
         }
-    }
+    }    
 }

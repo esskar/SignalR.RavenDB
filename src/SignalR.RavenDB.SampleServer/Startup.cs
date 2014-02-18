@@ -8,8 +8,8 @@ namespace SignalR.RavenDB.SampleServer
         public void Configuration(IAppBuilder app)
         {
             GlobalHost.DependencyResolver.UseRaven("raven_backplane");
-
-            var config = new HubConfiguration { EnableDetailedErrors = true };            
+            
+            var config = new HubConfiguration { EnableDetailedErrors = true };                 
             app.MapSignalR(config);
         }
     }

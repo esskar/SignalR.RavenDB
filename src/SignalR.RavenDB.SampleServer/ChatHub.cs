@@ -22,6 +22,7 @@ namespace SignalR.RavenDB.SampleServer
 
         public void Send(string name, string message)
         {
+            Console.WriteLine("Client with id {0} and name {1} sends: {2}", this.Context.ConnectionId, name, message);
             this.Clients.Others.OnReceived(string.Format("{0}: {1}", name, message));
         }
     }

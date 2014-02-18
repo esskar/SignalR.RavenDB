@@ -7,8 +7,8 @@ namespace SignalR.RavenDB.SampleClient
 {
     class Program
     {
-        static void Main(string[] args)
-        {
+        private static void Main(string[] args)
+        {                     
             var cts = new CancellationTokenSource();
             var clients = new Client[Consts.Instances*2];
             var count = 0;
@@ -22,9 +22,20 @@ namespace SignalR.RavenDB.SampleClient
                     if (j == 0) // only first client connected to a new port will send.
                     {
                         task.ContinueWith(
-                            (_, client) => OnClientConnected((Client)client),
-                            clients[count], cts.Token,
-                            TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                            (t, client) =>
+                            {
+                                if (t.IsFaulted)
+                                {
+                                    Console.WriteLine("Failed to connect - {0}", t.Exception.GetBaseException());
+                                }
+                                else
+                                {
+                                    OnClientConnected((Client) client);
+                                }
+
+                                
+                            },
+                            clients[count], cts.Token);
                     }
                     count++;
                 }                

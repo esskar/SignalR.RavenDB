@@ -42,14 +42,8 @@ namespace SignalR.RavenDB
             var traceManager = resolver.Resolve<ITraceManager>();
             _trace = traceManager["SignalR." + typeof(RavenMessageBus).Name];
 
-            _observer = new RavenMessageObserver(this);
-
+            _observer = new RavenMessageObserver(this);            
             this.ConnectWithRetry();
-        }
-
-        protected override Task Send(IList<Message> messages)
-        {
-            return this.Send(0, messages);
         }
 
         protected override void Dispose(bool disposing)
@@ -74,22 +68,25 @@ namespace SignalR.RavenDB
 
         protected override Task Send(int streamIndex, IList<Message> messages)
         {
+            _trace.TraceVerbose("Send called with stream index {0}.", streamIndex);
+
             var tcs = new TaskCompletionSource<object>();
-            this.SendMessages(messages, tcs);
+            this.SendMessages(streamIndex, messages, tcs);
             return tcs.Task;
         }
 
-        private async void SendMessages(IList<Message> messages, TaskCompletionSource<object> tcs)
+        private async void SendMessages(int streamIndex, IList<Message> messages, TaskCompletionSource<object> tcs)
         {
             try
             {
-                var ravenMessage = RavenMessage.FromMessages(messages);
+                var ravenMessage = RavenMessage.FromMessages(streamIndex, messages);
                 using (var session = _documentStore.OpenAsyncSession())
                 {
                     try
                     {
 
                         await session.StoreAsync(ravenMessage);
+                        _trace.TraceVerbose("Stored message with id '{0}'.", ravenMessage.Id);
                         if (_expiration > TimeSpan.Zero)
                         {
                             var expiry = DateTime.UtcNow.Add(_expiration);
@@ -119,8 +116,8 @@ namespace SignalR.RavenDB
                     using (var session = _documentStore.OpenSession())
                     {
                         var message = session.Load<RavenMessage>(id);
-                        var longId = Convert.ToUInt64(message.Id.Substring(message.Id.IndexOf('/') + 1));
-                        this.OnReceived(0, longId, message.ToScaleoutMessage());
+                        var longId = Convert.ToUInt64(message.Id.Substring(message.Id.LastIndexOf('/') + 1));
+                        this.OnReceived(message.StreamIndex, longId, message.ToScaleoutMessage());
                     }
                 }
             }
@@ -152,9 +149,10 @@ namespace SignalR.RavenDB
             this.Release();
             try
             {
-                _trace.TraceInformation("Initializing connection ...");
-
                 var documentStore = _documentStoreFactory();
+                
+                _trace.TraceInformation("Initializing connection '{0}' ...", documentStore.Identifier);
+
                 documentStore.Initialize();
 
                 _trace.TraceInformation("Connection initialized.");
@@ -162,7 +160,7 @@ namespace SignalR.RavenDB
                 _documentStore = documentStore;
 
                 _databaseChanges = _documentStore.Changes();
-                _databaseChanges.ConnectionStatusChanged += this.OnDatabasseConnectionStatusChanged;
+                _databaseChanges.ConnectionStatusChanged += this.OnDatabaseConnectionStatusChanged;
 
                 return TaskAsyncHelper.Empty;
             }
@@ -172,7 +170,7 @@ namespace SignalR.RavenDB
             }
         }
 
-        private void OnDatabasseConnectionStatusChanged(object sender, EventArgs eventArgs)
+        private void OnDatabaseConnectionStatusChanged(object sender, EventArgs eventArgs)
         {
             var databaseChanges = (IDatabaseChanges)sender;
 
@@ -181,16 +179,19 @@ namespace SignalR.RavenDB
             {
                 var oldState = Interlocked.Exchange(ref _state, State.Connected);
                 if (oldState == State.Connected)
-                    return;
+                    return;                
 
                 _trace.TraceInformation("Connected to RavenDB, subscribe to events.");
                 this.Subscribe(databaseChanges);
+                this.Open(0);
             }
             else
             {
                 var oldState = Interlocked.Exchange(ref _state, State.Closed);
                 if (oldState == State.Closed)
                     return;
+
+                this.Close(0);
 
                 _trace.TraceInformation("Disonnected from RavenDB, unsubscribe to events.");
                 this.Unsubscribe();
@@ -244,7 +245,7 @@ namespace SignalR.RavenDB
 
             if (_databaseChanges != null)
             {
-                _databaseChanges.ConnectionStatusChanged -= this.OnDatabasseConnectionStatusChanged;
+                _databaseChanges.ConnectionStatusChanged -= this.OnDatabaseConnectionStatusChanged;
                 _databaseChanges = null;
             }
 
@@ -263,6 +264,11 @@ namespace SignalR.RavenDB
         internal void TraceError(string format, Exception ex)
         {
             _trace.TraceError(format);
+        }
+
+        internal void TraceVerbose(string fomrat, params object[] args)
+        {
+             _trace.TraceVerbose(fomrat, args);
         }
 
         private static class State

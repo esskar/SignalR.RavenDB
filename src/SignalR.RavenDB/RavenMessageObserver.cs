@@ -21,6 +21,8 @@ namespace SignalR.RavenDB
 
         void IObserver<DocumentChangeNotification>.OnNext(DocumentChangeNotification value)
         {
+            _bus.TraceVerbose("Document change notification of type '{0}' with id '{1}' received: {2}", 
+                value.Type, value.Id, value.Message);
             if (value.Type != DocumentChangeTypes.Put)
                 return;
 
