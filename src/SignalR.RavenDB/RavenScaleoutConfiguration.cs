@@ -16,6 +16,7 @@ namespace SignalR.RavenDB
         {
             if (documentStoreFactory == null)
                 throw new ArgumentNullException("documentStoreFactory");
+
             _documentStoreFactory = documentStoreFactory;
 
             this.ReconnectDelay = TimeSpan.FromSeconds(2);
@@ -34,17 +35,25 @@ namespace SignalR.RavenDB
         private static Func<IDocumentStore> CreateConnectionFactory(string connectionStringNameOrUrl)
         {
             if (string.IsNullOrWhiteSpace(connectionStringNameOrUrl))
-                throw new ArgumentException("connectionStringNameOrUrl");
+                throw new ArgumentNullException("connectionStringNameOrUrl");
 
             try
             {
+                if (!Uri.IsWellFormedUriString(connectionStringNameOrUrl, UriKind.Absolute))
+                    return CreateConnectionFactoryFromConnectionStringName(connectionStringNameOrUrl);
+
                 var uri = new Uri(connectionStringNameOrUrl, UriKind.Absolute);
-                return () => new DocumentStore { Url = uri.AbsoluteUri };
+                return () => new DocumentStore {Url = uri.AbsoluteUri};
             }
             catch (UriFormatException)
             {
-                return () => new DocumentStore { ConnectionStringName = connectionStringNameOrUrl };
+                return CreateConnectionFactoryFromConnectionStringName(connectionStringNameOrUrl);
             }                       
+        }
+
+        private static Func<IDocumentStore> CreateConnectionFactoryFromConnectionStringName(string connectionStringName)
+        {
+            return () => new DocumentStore { ConnectionStringName = connectionStringName };
         }
     }
 }
