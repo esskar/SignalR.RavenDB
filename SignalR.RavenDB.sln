@@ -10,6 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{ADE695
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR.RavenDB.Tests", "tests\SignalR.RavenDB.Tests\SignalR.RavenDB.Tests.csproj", "{B291F65D-56BD-40B2-9B38-78247D64A475}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F0FE4C76-6E11-42AF-8C78-7E2A2640A32D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,15 @@ Global
 		{B3379D24-927D-4BF5-AF77-17F18360CD20}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3379D24-927D-4BF5-AF77-17F18360CD20}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3379D24-927D-4BF5-AF77-17F18360CD20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B291F65D-56BD-40B2-9B38-78247D64A475}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B291F65D-56BD-40B2-9B38-78247D64A475}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B291F65D-56BD-40B2-9B38-78247D64A475}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B291F65D-56BD-40B2-9B38-78247D64A475}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B291F65D-56BD-40B2-9B38-78247D64A475} = {F0FE4C76-6E11-42AF-8C78-7E2A2640A32D}
 	EndGlobalSection
 EndGlobal
