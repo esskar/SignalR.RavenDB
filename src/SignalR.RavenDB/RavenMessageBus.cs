@@ -116,8 +116,7 @@ namespace SignalR.RavenDB
                     using (var session = _documentStore.OpenSession())
                     {
                         var message = session.Load<RavenMessage>(id);
-                        var longId = Convert.ToUInt64(message.Id.Substring(message.Id.LastIndexOf('/') + 1));
-                        this.OnReceived(message.StreamIndex, longId, message.ToScaleoutMessage());
+                        this.OnReceived(message.StreamIndex, message.ToLongId(), message.ToScaleoutMessage());
                     }
                 }
             }

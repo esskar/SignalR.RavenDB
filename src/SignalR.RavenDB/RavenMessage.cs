@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNet.SignalR.Messaging;
 
 namespace SignalR.RavenDB
@@ -11,7 +12,7 @@ namespace SignalR.RavenDB
 
         public byte[] Data { get; set; }
 
-        internal static RavenMessage FromMessages(int streamIndex, IList<Message> messages)
+        public static RavenMessage FromMessages(int streamIndex, IList<Message> messages)
         {
             var scaleoutMessage = new ScaleoutMessage(messages);
             return new RavenMessage
@@ -21,9 +22,14 @@ namespace SignalR.RavenDB
             };
         }
 
-        internal ScaleoutMessage ToScaleoutMessage()
+        public ScaleoutMessage ToScaleoutMessage()
         {
             return ScaleoutMessage.FromBytes(this.Data);
+        }
+
+        public ulong ToLongId()
+        {
+            return Convert.ToUInt64(this.Id.Substring(this.Id.LastIndexOf('/') + 1));
         }
     }    
 }
