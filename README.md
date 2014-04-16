@@ -1,4 +1,4 @@
-# SignalR.RavenDB [![Build status](https://ci.appveyor.com/api/projects/status?id=r1nc0ga4fwco48cq)](https://ci.appveyor.com/project/signalr-ravendb)
+# SignalR.RavenDB
 
 RavenDB messaging backplane for scaling out of ASP.NET SignalR applications in a web-farm.
 
